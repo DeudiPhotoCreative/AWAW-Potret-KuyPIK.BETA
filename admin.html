@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Seleksi Foto</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/css/intlTelInput.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/intlTelInput.min.js"></script>
+
+    <style>
+        /* Modern Dark UI & Glassmorphism */
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: radial-gradient(circle at top right, #1e293b, #0f172a);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        /* Neon Accents */
+        .neon-text {
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+            color: #38bdf8;
+        }
+        .btn-neon {
+            background: #0ea5e9;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-neon:hover {
+            box-shadow: 0 0 25px rgba(14, 165, 233, 0.7);
+            transform: translateY(-2px);
+        }
+        
+        /* Form Styling */
+        .iti { width: 100%; display: block; }
+        .iti__flag-container { color: #000; } 
+        input, select {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: #fff !important;
+        }
+        input:focus {
+            outline: none;
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.3) !important;
+        }
+        /* Scrollbar styling */
+        .panel-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+        .panel-scroll::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.5); border-radius: 4px; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-6xl mx-auto mb-6 flex justify-between items-center border-b border-gray-700 pb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-[#0ea5e9] rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.5)]">
+                <span class="text-white font-bold text-xl">AP</span>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold neon-text">Dashboard</h1>
+                <p class="text-gray-400 text-xs mt-1">Kelola proyek pemilihan foto Anda</p>
+            </div>
+        </div>
+        <button onclick="toggleModal('modalCreate')" class="btn-neon px-5 py-2 rounded-lg font-semibold text-sm text-white flex items-center gap-2">
+            <span>+ Buat Project Baru</span>
+        </button>
+    </div>
+
+    <div class="max-w-6xl mx-auto">
+        <div class="flex space-x-2 border-b border-gray-700 mb-6">
+            <button onclick="switchTab('panel-daftar')" id="tab-daftar" class="px-4 py-3 text-sm font-semibold border-b-2 border-[#38bdf8] text-white transition-colors flex items-center gap-2">
+                📂 Daftar Project
+            </button>
+            <button onclick="switchTab('panel-status')" id="tab-status" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-2">
+                📊 Status Klien Seleksi
+            </button>
+            <button onclick="switchTab('panel-fg')" id="tab-fg" class="px-4 py-3 text-sm font-semibold border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-2">
+                📸 FG Edit
+            </button>
+        </div>
+
+        <div class="glass-panel p-6">
+            
+            <div id="panel-daftar" class="tab-content flex flex-col h-[65vh]">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-white">Daftar Project</h2>
+                    <div class="relative">
+                        <input type="text" placeholder="Cari nama klien..." class="p-2 pl-8 rounded-lg text-sm w-64 bg-[#151f32]">
+                        <span class="absolute left-3 top-2.5 text-gray-400 text-sm">🔍</span>
+                    </div>
+                </div>
+                <div class="overflow-y-auto panel-scroll flex-1">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead class="sticky top-0 bg-[#151f32] z-10 border-b border-gray-700">
+                            <tr>
+                                <th class="py-3 px-3 text-gray-400 font-medium rounded-tl-lg">Nama Klien</th>
+                                <th class="py-3 px-3 text-gray-400 font-medium">Sesi Foto</th>
+                                <th class="py-3 px-3 text-gray-400 font-medium">Link Drive</th>
+                                <th class="py-3 px-3 text-gray-400 font-medium rounded-tr-lg text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableDaftarProject">
+                            <tr><td colspan="4" class="text-center py-8 text-gray-500">Loading data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-status" class="tab-content hidden flex-col h-[65vh]">
+                <h2 class="text-lg font-bold text-white mb-4">Status Seleksi Klien</h2>
+                <div class="overflow-y-auto panel-scroll flex-1">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead class="sticky top-0 bg-[#151f32] z-10 border-b border-gray-700">
+                            <tr>
+                                <th class="py-3 px-3 text-gray-400 font-medium">Nama Klien</th>
+                                <th class="py-3 px-3 text-gray-400 font-medium">Status Saat Ini</th>
+                                <th class="py-3 px-3 text-gray-400 font-medium text-right">Hasil Pilihan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableStatusKlien">
+                            <tr><td colspan="3" class="text-center py-8 text-gray-500">Loading data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="panel-fg" class="tab-content hidden flex-col h-[65vh]">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-white">Distribusi FG Edit</h2>
+                    <p class="text-xs text-gray-400 bg-white/5 px-3 py-1 rounded">Pastikan subfolder "Edit" sudah ada di Drive utama</p>
+                </div>
+                <div class="overflow-y-auto panel-scroll flex-1">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead class="sticky top-0 bg-[#151f32] z-10 border-b border-gray-700">
+                            <tr>
+                                <th class="py-3 px-3 text-gray-400 font-medium">Nama Klien</th>
+                                <th class="py-3 px-3 text-gray-400 font-medium">Sesi Foto</th>
+                                <th class="py-3 px-3 text-gray-400 font-medium text-right">Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableFGEdit">
+                            <tr><td colspan="3" class="text-center py-8 text-gray-500">Loading data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modalCreate" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex-col justify-center items-center z-50 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-panel p-8 w-full max-w-xl mx-auto relative max-h-[90vh] overflow-y-auto panel-scroll flex flex-col">
+            <button onclick="toggleModal('modalCreate')" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold neon-text">Buat Project Baru</h2>
+                <p class="text-gray-400 text-sm mt-1">Lengkapi data untuk membuat link seleksi klien</p>
+            </div>
+            
+            <form id="projectForm" class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm mb-1 text-gray-300 text-left">Nama FG / Editor</label>
+                        <input type="text" id="namaFG" class="w-full p-2.5 rounded-lg text-center md:text-left" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1 text-gray-300 text-left">Nama Klien</label>
+                        <input type="text" id="namaKlien" class="w-full p-2.5 rounded-lg text-center md:text-left" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm mb-1 text-gray-300 text-left">Nama Sesi (Misal: Prewedding)</label>
+                    <input type="text" id="namaSesi" class="w-full p-2.5 rounded-lg text-center" required>
+                </div>
+                <div>
+                    <label class="block text-sm mb-1 text-gray-300 text-left">Link Folder Utama Google Drive</label>
+                    <input type="url" id="linkDrive" class="w-full p-2.5 rounded-lg text-center" placeholder="https://drive.google.com/..." required>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="w-full">
+                        <label class="block text-sm mb-1 text-gray-300 text-left">No WhatsApp Klien</label>
+                        <input type="tel" id="waKlien" class="w-full p-2.5 rounded-lg text-center" style="width: 100%;">
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-sm mb-1 text-gray-300 text-left">No WA Admin</label>
+                        <input type="tel" id="waAdmin" class="w-full p-2.5 rounded-lg text-center" style="width: 100%;" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm mb-1 text-gray-300 text-center">Max Foto</label>
+                        <input type="number" id="maxFoto" class="w-full p-2.5 rounded-lg text-center" value="50" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1 text-gray-300 text-center">Durasi (Hari)</label>
+                        <input type="number" id="durasi" class="w-full p-2.5 rounded-lg text-center" value="7" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm mb-1 text-gray-300 text-center">Password</label>
+                        <input type="text" id="password" class="w-full p-2.5 rounded-lg text-center" placeholder="Opsional">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-neon w-full py-3.5 mt-6 rounded-lg font-bold text-white tracking-wide text-lg mx-auto block">
+                    Simpan & Generate Link
+                </button>
+                <div id="loadingMsg" class="hidden mt-2 text-center text-sm text-sky-400">Menyimpan data ke server...</div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- KONFIGURASI API ---
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbx-1pCR3BgTxLBvSK7heLNZ1KzOEgQbQHnQtAuUF1a4pEqMEAlAJ_rv8oyPAuUXY9eX/exec"; 
+
+        // --- INISIALISASI PLUGIN WA ---
+        const waKlienInput = window.intlTelInput(document.querySelector("#waKlien"), {
+            initialCountry: "id", utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+        });
+        const waAdminInput = window.intlTelInput(document.querySelector("#waAdmin"), {
+            initialCountry: "id", utilsScript: "https://cdnjs.cloudflare.com/ajax/libs/intl-tel-input/17.0.8/js/utils.js",
+        });
+
+        // --- LOGIKA TABS ---
+        function switchTab(targetPanelId) {
+            document.querySelectorAll('.tab-content').forEach(panel => {
+                panel.classList.add('hidden');
+                panel.classList.remove('flex');
+            });
+
+            const tabIds = ['tab-daftar', 'tab-status', 'tab-fg'];
+            tabIds.forEach(id => {
+                const tab = document.getElementById(id);
+                tab.classList.remove('border-[#38bdf8]', 'text-white');
+                tab.classList.add('border-transparent', 'text-gray-400');
+            });
+
+            const targetPanel = document.getElementById(targetPanelId);
+            targetPanel.classList.remove('hidden');
+            targetPanel.classList.add('flex');
+
+            const activeTabId = targetPanelId.replace('panel-', 'tab-');
+            const activeTab = document.getElementById(activeTabId);
+            activeTab.classList.remove('border-transparent', 'text-gray-400');
+            activeTab.classList.add('border-[#38bdf8]', 'text-white');
+        }
+
+        // --- LOGIKA MODAL ---
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                setTimeout(() => { modal.classList.remove('opacity-0', 'pointer-events-none'); }, 10);
+            } else {
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => { modal.classList.add('hidden'); }, 300);
+            }
+        }
+
+        // --- FETCH DATA & RENDER KE TABEL ---
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${GAS_URL}?action=getAllProjects`);
+                const result = await response.json();
+                
+                const tbDaftar = document.getElementById('tableDaftarProject');
+                const tbStatus = document.getElementById('tableStatusKlien');
+                const tbFG = document.getElementById('tableFGEdit');
+                
+                tbDaftar.innerHTML = ''; tbStatus.innerHTML = ''; tbFG.innerHTML = '';
+
+                if(result.data.length === 0) {
+                    const emptyRow = '<tr><td colspan="4" class="text-center py-8 text-gray-500">Belum ada project yang dibuat.</td></tr>';
+                    tbDaftar.innerHTML = emptyRow; tbStatus.innerHTML = emptyRow; tbFG.innerHTML = emptyRow;
+                    return;
+                }
+
+                result.data.forEach(p => {
+                    const trClass = "border-b border-gray-700/30 hover:bg-white/5 transition-colors";
+
+                    // 1. Render Panel Daftar Project
+                    const trDaftar = document.createElement('tr');
+                    trDaftar.className = trClass;
+                    // PERBAIKAN LINK: Menggunakan index.html?project= agar aman di subfolder Github Pages
+                    trDaftar.innerHTML = `
+                        <td class="py-4 px-3 font-semibold text-white flex items-center gap-3">
+                            <span class="text-xl">📂</span> ${p.nama_klien}
+                        </td>
+                        <td class="py-4 px-3 text-gray-300">${p.nama_sesi}</td>
+                        <td class="py-4 px-3"><a href="${p.link_drive}" target="_blank" class="text-gray-400 hover:text-sky-400 truncate w-32 inline-block text-xs">Buka Drive</a></td>
+                        <td class="py-4 px-3 text-right">
+                            <a href="index.html?project=${p.project_id}" target="_blank" class="text-sky-400 hover:text-sky-300 text-sm font-medium bg-sky-400/10 px-3 py-1.5 rounded-lg border border-sky-400/20">
+                                Buka Klien
+                            </a>
+                        </td>
+                    `;
+                    tbDaftar.appendChild(trDaftar);
+
+                    // 2. Render Panel Status Klien
+                    let statusWarna = p.status === "Selesai Memilih" ? "text-green-400 bg-green-500/10 border-green-500/30" : 
+                                     (p.status === "Progres FG" ? "text-blue-400 bg-blue-500/10 border-blue-500/30" : "text-yellow-400 bg-yellow-500/10 border-yellow-500/30");
+                    
+                    const trStatus = document.createElement('tr');
+                    trStatus.className = trClass;
+                    trStatus.innerHTML = `
+                        <td class="py-4 px-3 font-semibold text-white">${p.nama_klien}</td>
+                        <td class="py-4 px-3">
+                            <span class="px-3 py-1 text-xs uppercase tracking-wider rounded-full border ${statusWarna}">
+                                ${p.status}
+                            </span>
+                        </td>
+                        <td class="py-4 px-3 text-right">
+                            ${p.status === 'Selesai Memilih' ? 
+                                `<button onclick="alert('File:\\n${p.file_terpilih}')" class="text-white bg-green-600 hover:bg-green-500 text-xs px-4 py-1.5 rounded-lg transition-colors shadow-[0_0_10px_rgba(22,163,74,0.3)]">Cek File</button>` 
+                                : '<span class="text-gray-600 text-sm italic">Menunggu...</span>'}
+                        </td>
+                    `;
+                    tbStatus.appendChild(trStatus);
+
+                    // 3. Render Panel FG Edit
+                    const trFG = document.createElement('tr');
+                    trFG.className = trClass;
+                    trFG.innerHTML = `
+                        <td class="py-4 px-3 font-semibold text-white">${p.nama_klien}</td>
+                        <td class="py-4 px-3 text-gray-300">${p.nama_sesi}</td>
+                        <td class="py-4 px-3 text-right">
+                            <button onclick="prosesFGEdit('${p.project_id}', '${p.wa_klien}', '${p.nama_klien}')" class="bg-blue-600 hover:bg-blue-500 text-white text-xs px-4 py-2 rounded-lg transition-colors shadow-[0_0_15px_rgba(37,99,235,0.4)]">
+                                Cek Folder & Kirim Link
+                            </button>
+                        </td>
+                    `;
+                    tbFG.appendChild(trFG);
+                });
+            } catch (error) {
+                console.error("Gagal memuat data", error);
+            }
+        }
+
+        // --- SUBMIT FORM CREATE PROJECT ---
+        document.getElementById('projectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('loadingMsg').classList.remove('hidden');
+
+            const payload = {
+                action: "createProject",
+                namaFG: document.getElementById('namaFG').value,
+                namaKlien: document.getElementById('namaKlien').value,
+                namaSesi: document.getElementById('namaSesi').value,
+                linkDrive: document.getElementById('linkDrive').value,
+                waKlien: waKlienInput.getNumber(),
+                waAdmin: waAdminInput.getNumber(),
+                maxFoto: document.getElementById('maxFoto').value,
+                durasi: document.getElementById('durasi').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+                const result = await response.json();
+                
+                if(result.status === "success") {
+                    alert("Project berhasil dibuat!");
+                    document.getElementById('projectForm').reset();
+                    toggleModal('modalCreate');
+                    loadProjects(); 
+                    switchTab('panel-daftar'); 
+                    
+                    if(payload.waKlien) {
+                        // Logika ini sudah otomatis mengambil URL tempat admin di-hosting
+                        const baseUrl = window.location.href.split('admin.html')[0];
+                        const linkKlien = `${baseUrl}index.html?project=${result.projectId}`;
+                        let textWa = `Halo kak ${payload.namaKlien}! Link pemilihan foto sesi *${payload.namaSesi}* sudah siap.\n\nKlik link berikut:\n${linkKlien}`;
+                        if(payload.password) textWa += `\n\nPassword: ${payload.password}`;
+                        window.open(`https://wa.me/${payload.waKlien.replace('+', '')}?text=${encodeURIComponent(textWa)}`, '_blank');
+                    }
+                }
+            } catch (error) {
+                alert("Gagal menyimpan data.");
+            } finally {
+                document.getElementById('loadingMsg').classList.add('hidden');
+            }
+        });
+
+        // --- LOGIKA PANEL 3: CEK FOLDER EDIT & KIRIM WA ---
+        async function prosesFGEdit(projectId, waKlien, namaKlien) {
+            if(!confirm(`Cek folder 'Edit' di Google Drive dan perbarui status ke 'Progres FG' untuk ${namaKlien}?`)) return;
+            
+            try {
+                const payload = { action: "updateStatus", status: "Progres FG", projectId: projectId };
+                const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+                const result = await response.json();
+                
+                if(result.status === "success") {
+                    loadProjects(); 
+                    
+                    if(result.subfolderEdit && result.subfolderEdit.startsWith("http")) {
+                        alert("Subfolder 'Edit' ditemukan! Mengarahkan ke WhatsApp klien...");
+                        if(waKlien) {
+                            let textWa = `Halo kak ${namaKlien}! Proses editing foto sudah selesai 🎉.\n\nSilakan unduh hasil foto kakak melalui link Google Drive berikut:\n${result.subfolderEdit}`;
+                            window.open(`https://wa.me/${waKlien.toString().replace('+', '')}?text=${encodeURIComponent(textWa)}`, '_blank');
+                        } else {
+                            alert(`Nomor WA klien tidak ada. Link folder hasil:\n${result.subfolderEdit}`);
+                        }
+                    } else {
+                        alert("Peringatan: Subfolder dengan nama 'Edit' belum ditemukan di dalam Google Drive tersebut.");
+                    }
+                }
+            } catch (error) {
+                alert("Gagal memproses permintaan.");
+            }
+        }
+
+        // Inisialisasi awal
+        loadProjects();
+    </script>
+</body>
+</html>
